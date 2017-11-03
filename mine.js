@@ -20,7 +20,6 @@
     var nodes = [];
     var foregroundElts = [];
 
-
     $(function () {
         $body = $('body');
         if (!("createTouch" in document)) {
@@ -88,11 +87,8 @@
         if (!clearImage) {
             // load the clear image only once
             clearImage = new Image;
-            if (!$body.css("background-image")) {
-                throw Error("element must have a background image");
-            }
             $(clearImage).one("load", render); // one --> on but executed at most once
-            $(clearImage).attr("src", "clear-bg.jpg");
+            $(clearImage).attr("src", _getImageUrl());
         }
     }
 
@@ -191,6 +187,22 @@
                 });
             }
         });
+    }
+
+    /**
+     * Get the image url from the body:before element
+     * @returns the url of the image
+     */
+    function _getImageUrl() {
+        var value = window.getComputedStyle(
+            document.querySelector('body'), ':before'
+        ).getPropertyValue('background-image');
+
+        var matches = value.match(/url\("(.*)"\)/);
+        if (matches.length < 2) {
+            throw Error("the body:before is missing a background-image property!");
+        }
+        return matches[1];
     }
 
 })();
