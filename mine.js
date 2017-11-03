@@ -1,8 +1,9 @@
 (function () {
 
+    var imageUrl = 'https://images2.alphacoders.com/664/thumb-1920-664421.jpg';
 
     var $body;
-
+    var $style;
     var renderedCanvas;
     var drawingCanvas;
 
@@ -22,6 +23,9 @@
 
     $(function () {
         $body = $('body');
+        $style = $('<style></style>');
+        $style.appendTo($body);
+
         if (!("createTouch" in document)) {
             $(init);
         }
@@ -86,9 +90,8 @@
 
         if (!clearImage) {
             // load the clear image only once
-            clearImage = new Image;
-            $(clearImage).one("load", render); // one --> on but executed at most once
-            $(clearImage).attr("src", _getImageUrl());
+
+            _setImageUrl(imageUrl);
         }
     }
 
@@ -193,16 +196,11 @@
      * Get the image url from the body:before element
      * @returns the url of the image
      */
-    function _getImageUrl() {
-        var value = window.getComputedStyle(
-            document.querySelector('body'), ':before'
-        ).getPropertyValue('background-image');
-
-        var matches = value.match(/url\("(.*)"\)/);
-        if (matches.length < 2) {
-            throw Error("the body:before is missing a background-image property!");
-        }
-        return matches[1];
+    function _setImageUrl(url) {
+        $style.text('body:before{content:"";position:absolute;background-size:cover;z-index:-1;height:20%;width:20%;transform:scale(5);transform-origin:top left;filter:blur(2px) brightness(40%);background-image:url("' + url + '")}');
+        clearImage = new Image;
+        $(clearImage).one("load", render); // one --> on but executed at most once
+        $(clearImage).attr("src", url);
     }
 
 })();
