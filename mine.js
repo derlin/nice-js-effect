@@ -2,26 +2,26 @@
 
 
     var $body;
+
     var renderedCanvas;
     var drawingCanvas;
+
     var renderedContext;
     var drawingContext;
+
     var clearImage;
-    /** @type {null} */
+
+
     var mouseX = null;
-    /** @type {null} */
     var startY = null;
-    /** @type {Array} */
-    var nodes = [];
-    /** @type {number} */
     var mouseMoveTime = 0;
-    /** @type {boolean} */
-    var t = true;
-    /** @type {Array} */
+    var mouseMoving = true;
+
+    var nodes = [];
     var foregroundElts = [];
 
 
-    $(function(){
+    $(function () {
         $body = $('body');
         if (!("createTouch" in document)) {
             $(init);
@@ -30,9 +30,6 @@
             init();
         }
     });
-
-
-
 
 
     /**
@@ -44,7 +41,7 @@
             startY = event.clientY;
             /** @type {number} */
             mouseMoveTime = Date.now();
-            if (!t) {
+            if (!mouseMoving) {
                 render();
             }
         });
@@ -99,42 +96,22 @@
         }
     }
 
-    /**
-     * Register header or other stuff that should always be blurred (i.e. you can't draw on),
-     * if any. Use the `skip-blur` class for it.
-     * @return {undefined}
-     */
-    function _registerForegroundElements() {
-        /** @type {Array} */
-        foregroundElts = [];
-        $(".skip-blur").each(function (position, elt) {
-            var $elt = $(elt);
-            if ($elt.is(":visible")) {
-                position = $elt.position();
-                foregroundElts.push({
-                    top: position.top,
-                    left: position.left,
-                    width: $elt.outerWidth(),
-                    height: $elt.outerHeight()
-                });
-            }
-        });
-    }
 
     /**
-     * @return {undefined}
+     * Render the mask based on the mouse movements.
+     * This method can be called either from the mousemove, or from the
+     * requestAnimationFrame.
      */
     function render() {
         var currentTime = Date.now();
-        t = currentTime <= mouseMoveTime + 500;
-        if (mouseX) {
-            if (t) {
-                nodes.unshift({
-                    time: currentTime,
-                    x: mouseX,
-                    y: startY + $body.scrollTop()
-                });
-            }
+        mouseMoving = currentTime <= mouseMoveTime + 50;
+        if (mouseX && mouseMoving) {
+            // render called from the mousemouse (not the requestAnimationFrame), add a point.
+            nodes.unshift({
+                time: currentTime,
+                x: mouseX,
+                y: startY + $body.scrollTop()
+            });
         }
         // remove old elements
         for (var i = 0; i < nodes.length;) {
@@ -168,11 +145,9 @@
             drawingContext.stroke();
         }
         var imageWidth = renderedCanvas.width;
-        /** @type {number} */
         var imageHeight = renderedCanvas.width / clearImage.naturalWidth * clearImage.naturalHeight;
         if (imageHeight < renderedCanvas.height) {
             imageHeight = renderedCanvas.height;
-            /** @type {number} */
             imageWidth = renderedCanvas.height / clearImage.naturalHeight * clearImage.naturalWidth;
         }
         // redraw the clear image to the canvas, resetting everything
@@ -192,6 +167,29 @@
         // finally, clear som areas, if any
         foregroundElts.forEach(function (cr) {
             renderedContext.clearRect(cr.left, cr.top, cr.width, cr.height);
+        });
+    }
+
+
+    /**
+     * Register header or other stuff that should always be blurred (i.e. you can't draw on),
+     * if any. Use the `skip-blur` class for it.
+     * @return {undefined}
+     */
+    function _registerForegroundElements() {
+        /** @type {Array} */
+        foregroundElts = [];
+        $(".skip-blur").each(function (position, elt) {
+            var $elt = $(elt);
+            if ($elt.is(":visible")) {
+                position = $elt.position();
+                foregroundElts.push({
+                    top: position.top,
+                    left: position.left,
+                    width: $elt.outerWidth(),
+                    height: $elt.outerHeight()
+                });
+            }
         });
     }
 
