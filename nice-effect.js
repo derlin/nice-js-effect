@@ -12,20 +12,19 @@
 
     var clearImage;
 
-
     var mouseX = null;
     var startY = null;
     var mouseMoveTime = 0;
     var mouseMoving = true;
 
-    var nodes = [];
+    var nodes = new Nodepool();
     var foregroundElts = [];
-
+    
     $(function () {
         $body = $('body');
         $style = $('<style></style>');
         $style.appendTo($body);
-
+        
         if (!("createTouch" in document)) {
             $(init);
         }
@@ -92,7 +91,6 @@
 
         if (!clearImage) {
             // load the clear image only once
-
             _setImageUrl(imageUrl);
         }
     }
@@ -108,20 +106,13 @@
         mouseMoving = currentTime <= mouseMoveTime + 50;
         if (mouseX && mouseMoving) {
             // render called from the mousemouse (not the requestAnimationFrame), add a point.
-            nodes.unshift({
-                time: currentTime,
-                x: mouseX,
-                y: startY + $body.scrollTop()
-            });
+            nodes.add(
+                /*time: */currentTime,
+                /*x: */mouseX,
+                /*y: */startY + $body.scrollTop());
         }
         // remove old elements
-        for (var i = 0; i < nodes.length;) {
-            if (1000 < currentTime - nodes[i].time) {
-                nodes.length = i;
-            } else {
-                i++;
-            }
-        }
+        nodes.removeOld(currentTime);
         $('.counter').text(nodes.length);
         // if more than one element to render, call render again
         if (0 < nodes.length) {
@@ -132,19 +123,22 @@
         drawingContext.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
 
         // re-render each node
+        var n0 = nodes.get(0), n1;
         for (var i = 1; i < nodes.length; i++) {
             // vector length using pythagore
-            var vertexLength = Math.sqrt(Math.pow(nodes[i].x - nodes[i - 1].x, 2) + Math.pow(nodes[i].y - nodes[i - 1].y, 2));
+            n1 = nodes.get(i);
+            var vertexLength = Math.sqrt(Math.pow(n1.x - n0.x, 2) + Math.pow(n1.y - n0.y, 2));
             // set opacity based on time
-            var opacity = Math.max(1 - (currentTime - nodes[i].time) / 1000, 0);
+            var opacity = Math.max(1 - (currentTime - n1.time) / 1000, 0);
             drawingContext.strokeStyle = "rgba(0,0,0," + opacity + ")";
             // linewidth between 25 and 100 based on the proximity of the two points
             drawingContext.lineWidth = 25 + 75 * Math.max(1 - vertexLength / 50, 0);
             // draw vector
             drawingContext.beginPath();
-            drawingContext.moveTo(nodes[i - 1].x, nodes[i - 1].y);
-            drawingContext.lineTo(nodes[i].x, nodes[i].y);
+            drawingContext.moveTo(n0.x, n0.y);
+            drawingContext.lineTo(n1.x, n1.y);
             drawingContext.stroke();
+            n0 = n1;
         }
         var imageWidth = renderedCanvas.width;
         var imageHeight = renderedCanvas.width / clearImage.naturalWidth * clearImage.naturalHeight;
