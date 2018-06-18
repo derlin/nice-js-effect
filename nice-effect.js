@@ -39,6 +39,7 @@
      * @return {undefined}
      */
     function init() {
+        console.log("init");
         $body.mousemove(function (event) {
             mouseX = event.clientX;
             startY = event.clientY;
@@ -66,6 +67,7 @@
      * @return {undefined}
      */
     function load() {
+        console.log("load");
         _registerForegroundElements();
         var bodyWidth = $body.width(), bodyHeight = $body.height();
         // the canvas attached to the page
@@ -120,6 +122,7 @@
                 i++;
             }
         }
+        $('.counter').text(nodes.length);
         // if more than one element to render, call render again
         if (0 < nodes.length) {
             window.requestAnimationFrame(render);
