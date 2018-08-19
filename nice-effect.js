@@ -113,7 +113,7 @@
         }
         // remove old elements
         nodes.removeOld(currentTime);
-        $('.counter').text(nodes.length);
+        // DEBUG $('.counter').text(nodes.length);
         // if more than one element to render, call render again
         if (0 < nodes.length) {
             window.requestAnimationFrame(render);
